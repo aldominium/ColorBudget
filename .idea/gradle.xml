@@ -9,6 +9,8 @@
           <set>
             <option value="C:\Users\aldo\Documents\GitHub\ColorBudget" />
             <option value="C:\Users\aldo\Documents\GitHub\ColorBudget\app" />
+            <option value="C:\Users\aldo\Documents\GitHub\ColorBudget\app\libs" />
+            <option value="C:\Users\aldo\Documents\GitHub\ColorBudget\app\libs\Parse-1.4.3" />
           </set>
         </option>
       </GradleProjectSettings>

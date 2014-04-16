@@ -1,15 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.aldominium.colorbudget.app" >
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
+        android:name="com.aldominium.colorbudget.app.ColorBudgetApplication"
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
             android:name="com.aldominium.colorbudget.app.MainActivity"
-            android:label="@string/app_name" >
+            android:label="@string/app_name"
+            android:screenOrientation="portrait" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -17,8 +21,18 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.aldominium.colorbudget.app.prueba"
-            android:label="@string/title_activity_prueba" >
+            android:name="com.aldominium.colorbudget.app.LoginActivity"
+            android:label="@string/title_activity_login"
+            android:screenOrientation="portrait" >
+        </activity>
+        <activity
+            android:name="com.aldominium.colorbudget.app.SignUpActivity"
+            android:label="@string/title_activity_sign_up"
+            android:screenOrientation="portrait"
+            android:parentActivityName="com.aldominium.colorbudget.app.LoginActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="LoginActivity" />
         </activity>
     </application>
 
