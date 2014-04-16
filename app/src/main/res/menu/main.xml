@@ -10,4 +10,8 @@
           android:title="@string/action_logout"
           android:orderInCategory="100"
           android:showAsAction="never" />
+    <item android:id="@+id/action_add_payment"
+          android:icon="@drawable/ic_action_content_new"
+          android:title="@string/menu_new_payment_label"
+          android:showAsAction="always"/>
 </menu>
