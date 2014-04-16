@@ -4,8 +4,10 @@ import android.app.Activity;
 import android.app.ActionBar;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -15,8 +17,12 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
+import com.parse.ParseAnalytics;
+import com.parse.ParseUser;
+
 
 public class MainActivity extends Activity implements ActionBar.OnNavigationListener {
+    public static final String TAG = MainActivity.class.getSimpleName();
 
     /**
      * The serialization (saved instance state) Bundle key representing the
@@ -28,6 +34,15 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        ParseAnalytics.trackAppOpened(getIntent());
+
+        ParseUser currentUser = ParseUser.getCurrentUser();
+        if (currentUser == null){
+            navigateToLogin();
+        }else {
+            Log.i(TAG, currentUser.getUsername());
+        }
 
         // Set up the action bar to show a dropdown list.
         final ActionBar actionBar = getActionBar();
@@ -48,6 +63,17 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
                         }),
                 this);
     }
+
+    private void navigateToLogin()
+    {
+
+
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+    }
+
 
     @Override
     public void onRestoreInstanceState(Bundle savedInstanceState) {
@@ -80,6 +106,10 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
+        if (id == R.id.action_logout){
+            ParseUser.logOut();
+            navigateToLogin();
+        }
         if (id == R.id.action_settings) {
             return true;
         }
