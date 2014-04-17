@@ -3,6 +3,7 @@ package com.aldominium.colorbudget.app;
 import android.app.Activity;
 import android.app.ActionBar;
 import android.app.Fragment;
+import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
@@ -15,13 +16,18 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.parse.ParseAnalytics;
 import com.parse.ParseUser;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
-public class MainActivity extends Activity implements ActionBar.OnNavigationListener {
+
+public class MainActivity extends Activity {
     public static final String TAG = MainActivity.class.getSimpleName();
 
     /**
@@ -45,10 +51,56 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
         }
 
         //Creates de action bar dropdown menu
-        setUpActionBar();
+        //setUpActionBar();
+
+        String[] values = new String[] { "Android", "iPhone", "WindowsMobile",
+                "Blackberry", "WebOS", "Ubuntu", "Windows7", "Max OS X",
+                "Linux", "OS/2", "Ubuntu", "Windows7", "Max OS X", "Linux",
+                "OS/2", "Ubuntu", "Windows7", "Max OS X", "Linux", "OS/2",
+                "Android", "iPhone", "WindowsMobile" };
+
+        final ArrayList<String> list = new ArrayList<String>();
+        for (int i = 0; i < values.length; ++i) {
+            list.add(values[i]);
+        }
+
+
+        final ListView listview = (ListView) findViewById(R.id.listView);
+
+        final StableArrayAdapter adapter = new StableArrayAdapter(this,
+                android.R.layout.simple_list_item_1, list);
+        listview.setAdapter(adapter);
+
 
 
     }
+
+    private class StableArrayAdapter extends ArrayAdapter<String> {
+
+        HashMap<String, Integer> mIdMap = new HashMap<String, Integer>();
+
+        public StableArrayAdapter(Context context, int textViewResourceId,
+                                  List<String> objects) {
+            super(context, textViewResourceId, objects);
+            for (int i = 0; i < objects.size(); ++i) {
+                mIdMap.put(objects.get(i), i);
+            }
+        }
+
+        @Override
+        public long getItemId(int position) {
+            String item = getItem(position);
+            return mIdMap.get(item);
+        }
+
+        @Override
+        public boolean hasStableIds() {
+            return true;
+        }
+
+    }
+
+
 
     private void navigateToLogin()
     {
@@ -60,7 +112,7 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
         startActivity(intent);
     }
 
-    public void setUpActionBar(){
+    /*public void setUpActionBar(){
 
         // Set up the action bar to show a dropdown list.
         final ActionBar actionBar = getActionBar();
@@ -79,7 +131,7 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
                                 getString(R.string.title_section2)
                         }),
                 this);
-    }
+    }*/
 
 
     @Override
@@ -123,15 +175,15 @@ public class MainActivity extends Activity implements ActionBar.OnNavigationList
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
+    /*@Override
     public boolean onNavigationItemSelected(int position, long id) {
         // When the given dropdown item is selected, show its contents in the
         // container view.
-        getFragmentManager().beginTransaction()
+        *//*getFragmentManager().beginTransaction()
                 .replace(R.id.container, new ListPaymentsFragment())
-                .commit();
+                .commit();*//*
         return true;
-    }
+    }*/
 
 
 

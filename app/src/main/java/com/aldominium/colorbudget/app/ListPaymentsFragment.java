@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 
 public class ListPaymentsFragment extends ListFragment {
 
@@ -19,4 +21,33 @@ public class ListPaymentsFragment extends ListFragment {
         return rootView;
     }
 
+
+    @Override
+    public void onCreate(Bundle savedInstanceState)
+    {
+
+        super.onCreate(savedInstanceState);
+
+    }
+
+
+    @Override
+    public void onResume()
+    {
+
+
+        super.onResume();
+
+        String[] usernames = new String[6];
+
+        for (int i = 0;i<usernames.length;i++){
+            usernames[i] = "Aldo";
+        }
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+                getListView().getContext(),
+                android.R.layout.simple_list_item_1,
+                usernames);
+        setListAdapter(adapter);
+    }
 }
