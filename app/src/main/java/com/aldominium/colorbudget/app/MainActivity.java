@@ -6,6 +6,7 @@ import android.app.Fragment;
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,13 +17,17 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.CalendarView;
+import android.widget.DatePicker;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.parse.ParseAnalytics;
 import com.parse.ParseUser;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
@@ -35,13 +40,47 @@ public class MainActivity extends Activity {
      * current dropdown position.
      */
     private static final String STATE_SELECTED_NAVIGATION_ITEM = "selected_navigation_item";
+    private static final int ADD_PAYMENT_REQUEST_CODE = 0;
+    protected CalendarView mCalendar;
+    protected int mSelectedYear;
+    protected int mSelectedMonth;
+    protected int mSelectedDay;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mCalendar = (CalendarView)findViewById(R.id.calendarView);
 
-        ParseAnalytics.trackAppOpened(getIntent());
+
+        Calendar calendar = Calendar.getInstance();
+
+        mSelectedDay = calendar.get(Calendar.DAY_OF_MONTH);
+        mSelectedMonth = calendar.get(Calendar.MONTH)+1;
+        mSelectedYear = calendar.get(Calendar.YEAR);
+
+        Toast.makeText(getBaseContext(),"Selected Date is\n\n"
+                        +mSelectedDay+" : "+(mSelectedMonth)+" : "+mSelectedYear ,
+                Toast.LENGTH_LONG).show();
+
+        mCalendar.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
+
+            @Override
+            public void onSelectedDayChange(CalendarView calendarView, int year, int month, int dayOfMonth)
+            {
+                mSelectedDay = dayOfMonth;
+                mSelectedMonth = month + 1;
+                mSelectedYear = year;
+
+                Toast.makeText(getBaseContext(),"Selected Date is\n\n"
+                                +mSelectedDay+" : "+(mSelectedMonth+1)+" : "+mSelectedYear ,
+                        Toast.LENGTH_LONG).show();
+
+            }
+        });
+
+
 
         ParseUser currentUser = ParseUser.getCurrentUser();
         if (currentUser == null){
@@ -74,6 +113,10 @@ public class MainActivity extends Activity {
 
 
     }
+
+
+
+
 
     private class StableArrayAdapter extends ArrayAdapter<String> {
 
@@ -171,6 +214,14 @@ public class MainActivity extends Activity {
         }
         if (id == R.id.action_settings) {
             return true;
+        }
+        if (id == R.id.action_add_payment){
+            Intent myIntent = new Intent(MainActivity.this,AddPaymentActivity.class);
+            myIntent.putExtra("year",mSelectedYear);
+            myIntent.putExtra("month",mSelectedMonth);
+            myIntent.putExtra("day",mSelectedDay);
+            startActivityForResult(myIntent,ADD_PAYMENT_REQUEST_CODE);
+
         }
         return super.onOptionsItemSelected(item);
     }
