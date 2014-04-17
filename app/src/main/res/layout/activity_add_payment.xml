@@ -12,7 +12,7 @@
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/editText"
+        android:id="@+id/nameField"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
@@ -23,28 +23,36 @@
         android:layout_height="wrap_content"
         android:inputType="numberDecimal"
         android:ems="10"
-        android:id="@+id/editText2"
-        android:layout_below="@+id/editText"
+        android:id="@+id/amountField"
+        android:layout_below="@+id/nameField"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"/>
 
     <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:inputType="date"
-        android:ems="10"
-        android:id="@+id/editText3"
-        android:layout_below="@+id/editText2"
+        android:id="@+id/dateField"
+        android:focusable="false"
+        android:layout_below="@+id/amountField"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"/>
 
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Añadir"
-        android:id="@+id/button"
-        android:layout_below="@+id/editText3"
+        android:text="Add Payment"
+        android:id="@+id/buttonAddPayment"
+        android:layout_marginTop="20dp"
+        android:layout_below="@+id/dateField"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Edit"
+        android:id="@+id/editarFecha"
+        android:layout_below="@+id/amountField"
+        android:layout_toRightOf="@+id/dateField"/>
 
 </RelativeLayout>

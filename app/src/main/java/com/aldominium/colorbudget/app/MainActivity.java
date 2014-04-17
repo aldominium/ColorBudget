@@ -1,29 +1,18 @@
 package com.aldominium.colorbudget.app;
 
 import android.app.Activity;
-import android.app.ActionBar;
-import android.app.Fragment;
-import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CalendarView;
-import android.widget.DatePicker;
+import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.parse.ParseAnalytics;
 import com.parse.ParseUser;
 
 import java.util.ArrayList;
@@ -54,6 +43,8 @@ public class MainActivity extends Activity {
         mCalendar = (CalendarView)findViewById(R.id.calendarView);
 
 
+
+
         Calendar calendar = Calendar.getInstance();
 
         mSelectedDay = calendar.get(Calendar.DAY_OF_MONTH);
@@ -70,15 +61,18 @@ public class MainActivity extends Activity {
             public void onSelectedDayChange(CalendarView calendarView, int year, int month, int dayOfMonth)
             {
                 mSelectedDay = dayOfMonth;
-                mSelectedMonth = month + 1;
+                mSelectedMonth = month+1;
                 mSelectedYear = year;
 
                 Toast.makeText(getBaseContext(),"Selected Date is\n\n"
-                                +mSelectedDay+" : "+(mSelectedMonth+1)+" : "+mSelectedYear ,
-                        Toast.LENGTH_LONG).show();
+                                +mSelectedDay+" : "+(mSelectedMonth)+" : "+mSelectedYear ,
+                        Toast.LENGTH_SHORT).show();
+
 
             }
         });
+
+
 
 
 
