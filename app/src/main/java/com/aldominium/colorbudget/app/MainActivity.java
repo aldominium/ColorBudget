@@ -1,18 +1,23 @@
 package com.aldominium.colorbudget.app;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.CalendarView;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.parse.FindCallback;
+import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
 import java.util.ArrayList;
@@ -34,14 +39,25 @@ public class MainActivity extends Activity {
     protected int mSelectedYear;
     protected int mSelectedMonth;
     protected int mSelectedDay;
+    protected List<ParseObject> mPaymentNames;
+
+
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.activity_main);
         mCalendar = (CalendarView)findViewById(R.id.calendarView);
 
+        //Checa si el usuario esta logeado,sino lo saca
+        final ParseUser currentUser = ParseUser.getCurrentUser();
+        if (currentUser == null){
+            navigateToLogin();
+        }else {
+            Log.i(TAG, currentUser.getUsername());
+        }
 
 
 
@@ -55,18 +71,62 @@ public class MainActivity extends Activity {
                         +mSelectedDay+" : "+(mSelectedMonth)+" : "+mSelectedYear ,
                 Toast.LENGTH_LONG).show();
 
+
         mCalendar.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
 
             @Override
             public void onSelectedDayChange(CalendarView calendarView, int year, int month, int dayOfMonth)
             {
+                setProgressBarIndeterminateVisibility(true);
                 mSelectedDay = dayOfMonth;
                 mSelectedMonth = month+1;
                 mSelectedYear = year;
 
-                Toast.makeText(getBaseContext(),"Selected Date is\n\n"
-                                +mSelectedDay+" : "+(mSelectedMonth)+" : "+mSelectedYear ,
-                        Toast.LENGTH_SHORT).show();
+                ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("Payments");
+                query.whereEqualTo("userId",ParseUser.getCurrentUser().getObjectId());
+                query.whereEqualTo("day",mSelectedDay);
+                query.setLimit(1000);
+                query.findInBackground(new FindCallback<ParseObject>() {
+
+                    @Override
+                    public void done(List<ParseObject> parseObjects, ParseException e)
+                    {
+                        setProgressBarIndeterminateVisibility(false);
+                        if (e == null){
+                            mPaymentNames = parseObjects;
+                            String[] payments = new String[mPaymentNames.size()];
+                            int i = 0;
+                            for(ParseObject payment : mPaymentNames) {
+                                payments[i] = payment.getString("name");
+                                i++;
+                            }
+
+                            final ArrayList<String> list = new ArrayList<String>();
+                            for (int y = 0; y < payments.length; ++y) {
+                                list.add(payments[y]);
+                            }
+
+
+                            final ListView listview = (ListView) findViewById(R.id.listView);
+
+                            final StableArrayAdapter adapter = new StableArrayAdapter(MainActivity.this,
+                                    android.R.layout.simple_list_item_1, list);
+                            listview.setAdapter(adapter);
+
+
+
+                        }else{
+                            Log.e(TAG, e.getMessage());
+                            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                            builder.setMessage(e.getMessage())
+                                    .setTitle("error")
+                                    .setPositiveButton(android.R.string.ok, null);
+                            AlertDialog dialog = builder.create();
+                            dialog.show();
+                        }
+
+                    }
+                });
 
 
             }
@@ -76,42 +136,66 @@ public class MainActivity extends Activity {
 
 
 
-        ParseUser currentUser = ParseUser.getCurrentUser();
-        if (currentUser == null){
-            navigateToLogin();
-        }else {
-            Log.i(TAG, currentUser.getUsername());
-        }
-
-        //Creates de action bar dropdown menu
-        //setUpActionBar();
-
-        String[] values = new String[] { "Android", "iPhone", "WindowsMobile",
-                "Blackberry", "WebOS", "Ubuntu", "Windows7", "Max OS X",
-                "Linux", "OS/2", "Ubuntu", "Windows7", "Max OS X", "Linux",
-                "OS/2", "Ubuntu", "Windows7", "Max OS X", "Linux", "OS/2",
-                "Android", "iPhone", "WindowsMobile" };
-
-        final ArrayList<String> list = new ArrayList<String>();
-        for (int i = 0; i < values.length; ++i) {
-            list.add(values[i]);
-        }
+    }
 
 
-        final ListView listview = (ListView) findViewById(R.id.listView);
+    @Override
+    protected void onResume()
+    {
 
-        final StableArrayAdapter adapter = new StableArrayAdapter(this,
-                android.R.layout.simple_list_item_1, list);
-        listview.setAdapter(adapter);
 
+        super.onResume();
+
+        ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("Payments");
+        query.whereEqualTo("userId",ParseUser.getCurrentUser().getObjectId());
+        query.whereEqualTo("day",mSelectedDay);
+        query.setLimit(1000);
+        query.findInBackground(new FindCallback<ParseObject>() {
+
+            @Override
+            public void done(List<ParseObject> parseObjects, ParseException e)
+            {
+                if (e == null){
+                    mPaymentNames = parseObjects;
+                    String[] payments = new String[mPaymentNames.size()];
+                    int i = 0;
+                    for(ParseObject payment : mPaymentNames) {
+                        payments[i] = payment.getString("name");
+                        i++;
+                    }
+
+                    final ArrayList<String> list = new ArrayList<String>();
+                    for (int y = 0; y < payments.length; ++y) {
+                        list.add(payments[y]);
+                    }
+
+
+                    final ListView listview = (ListView) findViewById(R.id.listView);
+
+                    final StableArrayAdapter adapter = new StableArrayAdapter(MainActivity.this,
+                            android.R.layout.simple_list_item_1, list);
+                    listview.setAdapter(adapter);
+
+
+
+                }else{
+                    Log.e(TAG, e.getMessage());
+                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setMessage(e.getMessage())
+                            .setTitle("error")
+                            .setPositiveButton(android.R.string.ok, null);
+                    AlertDialog dialog = builder.create();
+                    dialog.show();
+                }
+
+            }
+        });
 
 
     }
 
 
-
-
-
+    //Adaptador de la lista de pagos
     private class StableArrayAdapter extends ArrayAdapter<String> {
 
         HashMap<String, Integer> mIdMap = new HashMap<String, Integer>();
@@ -149,26 +233,6 @@ public class MainActivity extends Activity {
         startActivity(intent);
     }
 
-    /*public void setUpActionBar(){
-
-        // Set up the action bar to show a dropdown list.
-        final ActionBar actionBar = getActionBar();
-        actionBar.setDisplayShowTitleEnabled(false);
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-
-        // Set up the dropdown list navigation in the action bar.
-        actionBar.setListNavigationCallbacks(
-                // Specify a SpinnerAdapter to populate the dropdown list.
-                new ArrayAdapter<String>(
-                        actionBar.getThemedContext(),
-                        android.R.layout.simple_list_item_1,
-                        android.R.id.text1,
-                        new String[] {
-                                getString(R.string.title_section1),
-                                getString(R.string.title_section2)
-                        }),
-                this);
-    }*/
 
 
     @Override
@@ -220,16 +284,59 @@ public class MainActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
-    /*@Override
-    public boolean onNavigationItemSelected(int position, long id) {
-        // When the given dropdown item is selected, show its contents in the
-        // container view.
-        *//*getFragmentManager().beginTransaction()
-                .replace(R.id.container, new ListPaymentsFragment())
-                .commit();*//*
-        return true;
-    }*/
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+
+
+        super.onActivityResult(requestCode, resultCode, data);
+
+        ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("Payments");
+        query.whereEqualTo("userId",ParseUser.getCurrentUser().getObjectId());
+        query.whereEqualTo("day",mSelectedDay);
+        query.setLimit(1000);
+        query.findInBackground(new FindCallback<ParseObject>() {
+
+            @Override
+            public void done(List<ParseObject> parseObjects, ParseException e)
+            {
+                if (e == null){
+                    mPaymentNames = parseObjects;
+                    String[] payments = new String[mPaymentNames.size()];
+                    int i = 0;
+                    for(ParseObject payment : mPaymentNames) {
+                        payments[i] = payment.getString("name");
+                        i++;
+                    }
+
+                    final ArrayList<String> list = new ArrayList<String>();
+                    for (int y = 0; y < payments.length; ++y) {
+                        list.add(payments[y]);
+                    }
+
+
+                    final ListView listview = (ListView) findViewById(R.id.listView);
+
+                    final StableArrayAdapter adapter = new StableArrayAdapter(MainActivity.this,
+                            android.R.layout.simple_list_item_1, list);
+                    listview.setAdapter(adapter);
 
 
 
+                }else{
+                    Log.e(TAG, e.getMessage());
+                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setMessage(e.getMessage())
+                            .setTitle("error")
+                            .setPositiveButton(android.R.string.ok, null);
+                    AlertDialog dialog = builder.create();
+                    dialog.show();
+                }
+
+            }
+        });
+
+    }
 }

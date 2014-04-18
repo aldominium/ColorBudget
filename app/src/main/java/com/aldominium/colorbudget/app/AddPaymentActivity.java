@@ -1,6 +1,7 @@
 package com.aldominium.colorbudget.app;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.Intent;
@@ -8,11 +9,17 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseUser;
+import com.parse.SaveCallback;
 
 
 public class AddPaymentActivity extends Activity {
@@ -21,8 +28,11 @@ public class AddPaymentActivity extends Activity {
     protected int mSelectedDay;
     private Intent mCallerIntent;
     protected EditText mDateInput;
+    protected EditText mAmmountInput;
+    protected EditText mNameInput;
     protected Button mEditarFecha;
     protected Button mAddPayment;
+    protected float ammount;
     static final int DATE_DIALOG_ID = 0;
 
     private DatePickerDialog.OnDateSetListener mDateSetListener =
@@ -40,6 +50,7 @@ public class AddPaymentActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.activity_add_payment);
         mCallerIntent = getIntent();
         mSelectedDay = mCallerIntent.getIntExtra("day",0);
@@ -47,12 +58,15 @@ public class AddPaymentActivity extends Activity {
         mSelectedYear = mCallerIntent.getIntExtra("year",0);
         mEditarFecha = (Button)findViewById(R.id.editarFecha);
         mAddPayment = (Button)findViewById(R.id.buttonAddPayment);
+        mAmmountInput = (EditText)findViewById(R.id.amountField);
+        mNameInput = (EditText)findViewById(R.id.nameField);
 
-        Toast.makeText(getBaseContext(), "Selected Date is\n\n"
+
+        /*Toast.makeText(getBaseContext(), "Selected Date is\n\n"
                         + mSelectedDay + " : " + (mSelectedMonth) + " : " + mSelectedYear,
                 Toast.LENGTH_LONG
         ).show();
-
+*/
         mDateInput = (EditText)findViewById(R.id.dateField);
         updateDisplay();
 
@@ -75,7 +89,12 @@ public class AddPaymentActivity extends Activity {
             {
                 //Salvar el pago
                 //Volver a la actividad principal
+                ammount = Integer.parseInt(mAmmountInput.getText().toString());
+                setProgressBarIndeterminateVisibility(true);
+                savePayment();
+                setProgressBarIndeterminateVisibility(false);
                 AddPaymentActivity.this.setResult(RESULT_OK, getIntent().putExtra("texto3", "aldo"));
+
                 finish();
 
             }
@@ -108,6 +127,34 @@ public class AddPaymentActivity extends Activity {
                         .append(mSelectedDay).append("-")
                         .append(mSelectedYear).append(" ")
         );
+    }
+
+    private void savePayment(){
+        ParseObject message = new ParseObject(ParseConstants.CLASS_PAYMENTS);
+        message.put(ParseConstants.KEY_USER_ID, ParseUser.getCurrentUser().getObjectId());
+        message.put(ParseConstants.KEY_AMMOUNT, Float.parseFloat(mAmmountInput.getText().toString()));
+        message.put(ParseConstants.KEY_DAY, mSelectedDay);
+        message.put(ParseConstants.KEY_MONTH, mSelectedMonth);
+        message.put(ParseConstants.KEY_YEAR, mSelectedYear);
+        message.put(ParseConstants.KEY_NAME, mNameInput.getText().toString());
+
+        message.saveInBackground(new SaveCallback() {
+            @Override
+            public void done(ParseException e) {
+                if (e == null) {
+                    // success!
+                    Toast.makeText(AddPaymentActivity.this, "Exito", Toast.LENGTH_LONG).show();
+                }
+                else {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(AddPaymentActivity.this);
+                    builder.setMessage("Error al guardar mensaje")
+                            .setTitle("Error")
+                            .setPositiveButton(android.R.string.ok, null);
+                    AlertDialog dialog = builder.create();
+                    dialog.show();
+                }
+            }
+        });
     }
 
 
