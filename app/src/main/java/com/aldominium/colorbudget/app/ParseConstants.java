@@ -14,6 +14,7 @@ public class ParseConstants {
     public static final String KEY_DAY = "day";
     public static final String KEY_NAME = "name";
     public static final String KEY_AMMOUNT = "ammount";
+    public static final String KEY_OBJ_ID = "objectId";
 
 
 }

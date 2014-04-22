@@ -69,15 +69,33 @@ public class NotificationService extends IntentService {
                         if (parseObjects.isEmpty()){
                             //There are no payments due, yay!!
                             Log.e(TAG, "No payments");
-                        }else {
-                            //We have payments, send notification
-                            Log.e(TAG, "payments");
+
                             mNotificationIntent = new Intent(NotificationService.this,MainActivity.class);
+                            mNotificationIntent.putExtra("notificacion",true);
                             mContentIntent = PendingIntent.getActivity(NotificationService.this, 0,
                                     mNotificationIntent, Intent.FLAG_ACTIVITY_NEW_TASK);
 
                             Notification.Builder notificationBuilder = new Notification.Builder(
-                                    NotificationService.this).setTicker(tickerText)
+                                    NotificationService.this).setTicker("No payments, yay!!!")
+                                    .setSmallIcon(android.R.drawable.stat_sys_warning)
+                                    .setAutoCancel(true).setContentTitle(contentTitle)
+                                    .setContentText(contentText).setContentIntent(mContentIntent);
+
+                            NotificationManager mNotificationManager = (NotificationManager) NotificationService.this
+                                    .getSystemService(NotificationService.this.NOTIFICATION_SERVICE);
+                            mNotificationManager.notify(1,
+                                    notificationBuilder.build());
+                        }else {
+                            //We have payments, send notification
+                            Log.e(TAG, "payments");
+                            mNotificationIntent = new Intent(NotificationService.this,MainActivity.class);
+                            mNotificationIntent.putExtra("notificacion",true);
+                            mContentIntent = PendingIntent.getActivity(NotificationService.this, 0,
+                                    mNotificationIntent, Intent.FLAG_ACTIVITY_NEW_TASK);
+
+
+                            Notification.Builder notificationBuilder = new Notification.Builder(
+                                    NotificationService.this).setTicker("Payments tomorrow")
                                     .setSmallIcon(android.R.drawable.stat_sys_warning)
                                     .setAutoCancel(true).setContentTitle(contentTitle)
                                     .setContentText(contentText).setContentIntent(mContentIntent);

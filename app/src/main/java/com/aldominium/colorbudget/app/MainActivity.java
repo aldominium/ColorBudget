@@ -15,12 +15,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CalendarView;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import com.parse.FindCallback;
+import com.parse.GetCallback;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
@@ -49,9 +51,13 @@ public class MainActivity extends ListActivity {
     protected AlarmManager mAlarmManager;
     protected Intent mNotificationServiceIntent;
     protected PendingIntent mNotificationServicePendingIntent;
+    protected ListView mListView;
 
     private static final long INITIAL_ALARM_DELAY = 2 * 60 * 1000L;
     protected static final long JITTER = 5000L;
+    protected static final int  ALARM_HOUR = 11;
+    protected static final int  ALARM_MIN = 00;
+    protected static final int  ALARM_SEC = 00;
 
 
 
@@ -64,24 +70,37 @@ public class MainActivity extends ListActivity {
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.activity_main);
         mCalendar = (CalendarView)findViewById(R.id.calendarView);
-
         mAlarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        mListView = (ListView)findViewById(R.id.listView);
+        Calendar calendar = Calendar.getInstance();
+
+        mSelectedDay = calendar.get(Calendar.DAY_OF_MONTH);
+        mSelectedMonth = calendar.get(Calendar.MONTH)+1;
+        mSelectedYear = calendar.get(Calendar.YEAR);
+
 
         Log.e(TAG, "Creo la alarma");
-        //Crea pending intent para las alarmas
-        mNotificationServiceIntent = new Intent(MainActivity.this,
-                NotificationService.class);
-        mNotificationServicePendingIntent = PendingIntent.getService(
-                MainActivity.this, 0, mNotificationServiceIntent, 0);
-
-        mAlarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME,
-                SystemClock.elapsedRealtime() + INITIAL_ALARM_DELAY,
-                AlarmManager.INTERVAL_FIFTEEN_MINUTES,
-                mNotificationServicePendingIntent);
 
 
-        //Servicio para checar por notificaciones
-        //Intent serviceIntent = new Intent(MainActivity.this,NotificationService.class);
+
+        if (getIntent().getBooleanExtra("notificacion", false)){
+            Log.i(TAG,"entre if");
+
+
+
+        }else
+        {
+            Log.i(TAG,"entre else");
+
+            setAlarm(ALARM_HOUR,ALARM_MIN,ALARM_SEC);
+        }
+
+
+        mListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+
+
+
+
 
 
 
@@ -95,11 +114,7 @@ public class MainActivity extends ListActivity {
 
 
 
-        Calendar calendar = Calendar.getInstance();
 
-        mSelectedDay = calendar.get(Calendar.DAY_OF_MONTH);
-        mSelectedMonth = calendar.get(Calendar.MONTH)+1;
-        mSelectedYear = calendar.get(Calendar.YEAR);
 
         /*Toast.makeText(getBaseContext(),"Selected Date is\n\n"
                         +mSelectedDay+" : "+(mSelectedMonth)+" : "+mSelectedYear ,
@@ -169,6 +184,48 @@ public class MainActivity extends ListActivity {
 
 
 
+        mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+
+            @Override
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l)
+            {
+
+                Log.i(TAG,""+i);
+                ParseQuery<ParseObject> query = new ParseQuery<ParseObject>(ParseConstants.CLASS_PAYMENTS);
+                query.whereEqualTo(ParseConstants.KEY_USER_ID,ParseUser.getCurrentUser().getObjectId());
+                String name = (String) mListView.getItemAtPosition(i);
+                Log.i(TAG,"objecto:"+name);
+                Calendar calendar3 = Calendar.getInstance();
+
+                int mActualDay = calendar3.get(Calendar.DAY_OF_MONTH);
+                int mActualMonth = calendar3.get(Calendar.MONTH)+1;
+                int mActualYear = calendar3.get(Calendar.YEAR);
+
+                query.whereEqualTo(ParseConstants.KEY_NAME, name);
+                query.whereEqualTo(ParseConstants.KEY_DAY,mSelectedDay);
+                query.whereEqualTo(ParseConstants.KEY_MONTH,mSelectedMonth);
+                query.whereEqualTo(ParseConstants.KEY_YEAR,mSelectedYear);
+                query.getFirstInBackground(new GetCallback<ParseObject>() {
+
+                    @Override
+                    public void done(ParseObject parseObject, ParseException e)
+                    {
+                        if (e == null){
+                            ParseObject.createWithoutData(ParseConstants.CLASS_PAYMENTS,
+                                    parseObject.getObjectId()).deleteEventually();
+                        }else {
+                            Log.e(TAG,e.getMessage());
+                        }
+
+                    }
+                });
+                return false;
+            }
+        });
+
+
+
+
 
     }
 
@@ -229,6 +286,8 @@ public class MainActivity extends ListActivity {
     }
 
 
+
+
     //Adaptador de la lista de pagos
     private class StableArrayAdapter extends ArrayAdapter<String> {
 
@@ -265,6 +324,25 @@ public class MainActivity extends ListActivity {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
+    }
+
+    private void setAlarm(int hour,int min,int sec){
+        //Crea pending intent para las alarmas
+        mNotificationServiceIntent = new Intent(MainActivity.this,
+                NotificationService.class);
+        mNotificationServicePendingIntent = PendingIntent.getService(
+                MainActivity.this, 0, mNotificationServiceIntent, 0);
+
+
+        Calendar calendar2 = Calendar.getInstance();
+        calendar2.setTimeInMillis(System.currentTimeMillis());
+        calendar2.set(Calendar.HOUR_OF_DAY, hour);
+        calendar2.set(Calendar.MINUTE, min);
+        calendar2.set(Calendar.SECOND, sec);
+        mAlarmManager.setRepeating(AlarmManager.RTC_WAKEUP,
+        calendar2.getTimeInMillis(),
+        AlarmManager.INTERVAL_DAY,//24*60*60*1000 dia
+        mNotificationServicePendingIntent);
     }
 
 
@@ -331,6 +409,8 @@ public class MainActivity extends ListActivity {
             //remove the delete button
         }
     }
+
+
 
     protected void removeCheckedItems(){
         for(int i = 0;i <getListView().getCount();i++){
