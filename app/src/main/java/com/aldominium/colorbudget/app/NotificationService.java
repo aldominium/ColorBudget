@@ -6,6 +6,7 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.net.Uri;
 import android.util.Log;
 
 import com.parse.FindCallback;
@@ -14,6 +15,7 @@ import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
+import java.net.URI;
 import java.util.Calendar;
 import java.util.List;
 
@@ -27,6 +29,9 @@ import java.util.List;
 public class NotificationService extends IntentService {
     public static final String TAG = MainActivity.class.getSimpleName();
 
+    public static final String noPaymentsSound = "alarm_rooster";
+    public static final String paymentsSound = "cash";
+
     public int mActualDay;
     public int mActualMonth;
     public int mActualYear;
@@ -35,10 +40,20 @@ public class NotificationService extends IntentService {
     private Intent mNotificationIntent;
     private PendingIntent mContentIntent;
 
+    private long[] mVibratePattern = { 0, 200, 200, 300 };
+
     // Notification Text Elements
     private final CharSequence tickerText = "Are You Playing Angry Birds Again!";
     private final CharSequence contentTitle = "A Kind Reminder";
     private final CharSequence contentText = "Get back to studying!!";
+
+    private Uri noPaymentsSoundURI = Uri
+            .parse("android.resource://com.aldominium.colorbudget.app/"
+                    + R.raw.alarm_rooster);
+
+    private Uri paymentsSoundURI = Uri
+            .parse("android.resource://com.aldominium.colorbudget.app/"
+                    + R.raw.cash);
 
     //We must call the super constructor
     public NotificationService() {
@@ -78,8 +93,9 @@ public class NotificationService extends IntentService {
                             Notification.Builder notificationBuilder = new Notification.Builder(
                                     NotificationService.this).setTicker("No payments, yay!!!")
                                     .setSmallIcon(android.R.drawable.stat_sys_warning)
-                                    .setAutoCancel(true).setContentTitle(contentTitle)
-                                    .setContentText(contentText).setContentIntent(mContentIntent);
+                                    .setAutoCancel(true).setContentTitle("No payments,Relax")
+                                    .setSound(noPaymentsSoundURI).setVibrate(mVibratePattern)
+                                    .setContentText("No payments for tomorrow, relax!").setContentIntent(mContentIntent);
 
                             NotificationManager mNotificationManager = (NotificationManager) NotificationService.this
                                     .getSystemService(NotificationService.this.NOTIFICATION_SERVICE);
@@ -97,8 +113,9 @@ public class NotificationService extends IntentService {
                             Notification.Builder notificationBuilder = new Notification.Builder(
                                     NotificationService.this).setTicker("Payments tomorrow")
                                     .setSmallIcon(android.R.drawable.stat_sys_warning)
-                                    .setAutoCancel(true).setContentTitle(contentTitle)
-                                    .setContentText(contentText).setContentIntent(mContentIntent);
+                                    .setAutoCancel(true).setContentTitle("You have payments tomorrow")
+                                    .setSound(paymentsSoundURI).setVibrate(mVibratePattern)
+                                    .setContentText("Touch to see your tomorrow's payments").setContentIntent(mContentIntent);
 
                             NotificationManager mNotificationManager = (NotificationManager) NotificationService.this
                                     .getSystemService(NotificationService.this.NOTIFICATION_SERVICE);
