@@ -89,9 +89,14 @@ public class AddPaymentActivity extends Activity {
             {
                 //Salvar el pago
                 //Volver a la actividad principal
-                ammount = Integer.parseInt(mAmmountInput.getText().toString());
+                //ammount = Integer.parseInt(mAmmountInput.getText().toString());
                 setProgressBarIndeterminateVisibility(true);
-                savePayment();
+                try{
+                    savePayment();
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+
                 setProgressBarIndeterminateVisibility(false);
                 AddPaymentActivity.this.setResult(RESULT_OK, getIntent().putExtra("texto3", "aldo"));
 
@@ -132,7 +137,7 @@ public class AddPaymentActivity extends Activity {
     private void savePayment(){
         ParseObject message = new ParseObject(ParseConstants.CLASS_PAYMENTS);
         message.put(ParseConstants.KEY_USER_ID, ParseUser.getCurrentUser().getObjectId());
-        message.put(ParseConstants.KEY_AMMOUNT, Float.parseFloat(mAmmountInput.getText().toString()));
+        message.put(ParseConstants.KEY_AMMOUNT, Double.parseDouble(mAmmountInput.getText().toString().trim()));
         message.put(ParseConstants.KEY_DAY, mSelectedDay);
         message.put(ParseConstants.KEY_MONTH, mSelectedMonth);
         message.put(ParseConstants.KEY_YEAR, mSelectedYear);

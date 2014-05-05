@@ -6,10 +6,13 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.parse.FindCallback;
+import com.parse.ParseCloud;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
@@ -30,11 +33,13 @@ public class NotificationService extends IntentService {
     public static final String TAG = MainActivity.class.getSimpleName();
 
     public static final String noPaymentsSound = "alarm_rooster";
-    public static final String paymentsSound = "cash";
+    public static String paymentsSound = "cash";
 
     public int mActualDay;
     public int mActualMonth;
     public int mActualYear;
+
+    public int mDaysBefore;
 
     // Notification Action Elements
     private Intent mNotificationIntent;
@@ -51,9 +56,8 @@ public class NotificationService extends IntentService {
             .parse("android.resource://com.aldominium.colorbudget.app/"
                     + R.raw.alarm_rooster);
 
-    private Uri paymentsSoundURI = Uri
-            .parse("android.resource://com.aldominium.colorbudget.app/"
-                    + R.raw.cash);
+    private Uri paymentsSoundURI;
+    final ParseUser currentUser = ParseUser.getCurrentUser();
 
     //We must call the super constructor
     public NotificationService() {
@@ -62,6 +66,30 @@ public class NotificationService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
+
+        SharedPreferences pref = PreferenceManager
+                .getDefaultSharedPreferences(this);
+
+
+        mDaysBefore = Integer.parseInt(pref.getString("dias","1"));
+
+        paymentsSound = pref.getString("tema","cash");
+
+        if(paymentsSound.equals("cash")){
+            paymentsSoundURI = Uri
+                    .parse("android.resource://com.aldominium.colorbudget.app/"
+                            + R.raw.cash);
+        }else if (paymentsSound.equals("dong")){
+            paymentsSoundURI = Uri
+                    .parse("android.resource://com.aldominium.colorbudget.app/"
+                            + R.raw.dong);
+        }else {
+            paymentsSoundURI = Uri
+                    .parse("android.resource://com.aldominium.colorbudget.app/"
+                            + R.raw.cash);
+        }
+
+
         if (intent != null) {
             Calendar calendar = Calendar.getInstance();
             mActualDay = calendar.get(Calendar.DAY_OF_MONTH);
@@ -70,7 +98,7 @@ public class NotificationService extends IntentService {
 
             ParseQuery<ParseObject> query = new ParseQuery<ParseObject>(ParseConstants.CLASS_PAYMENTS);
             query.whereEqualTo(ParseConstants.KEY_USER_ID, ParseUser.getCurrentUser().getObjectId());
-            query.whereEqualTo(ParseConstants.KEY_DAY, mActualDay +1);
+            query.whereEqualTo(ParseConstants.KEY_DAY, mActualDay +mDaysBefore);
             query.whereEqualTo(ParseConstants.KEY_MONTH, mActualMonth);
             query.whereEqualTo(ParseConstants.KEY_YEAR, mActualYear);
             query.setLimit(1000);
@@ -121,6 +149,9 @@ public class NotificationService extends IntentService {
                                     .getSystemService(NotificationService.this.NOTIFICATION_SERVICE);
                             mNotificationManager.notify(1,
                                     notificationBuilder.build());
+
+
+
                         }
                     }else{
                         Log.e(TAG, e.getMessage());

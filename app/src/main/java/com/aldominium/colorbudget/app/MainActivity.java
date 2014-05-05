@@ -6,10 +6,13 @@ import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -32,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.StringTokenizer;
 
 
 public class MainActivity extends ListActivity {
@@ -55,9 +59,10 @@ public class MainActivity extends ListActivity {
 
     private static final long INITIAL_ALARM_DELAY = 2 * 60 * 1000L;
     protected static final long JITTER = 5000L;
-    protected static final int  ALARM_HOUR = 11;
+    protected static final int  ALARM_HOUR = 10;
     protected static final int  ALARM_MIN = 00;
     protected static final int  ALARM_SEC = 00;
+
 
 
 
@@ -78,22 +83,13 @@ public class MainActivity extends ListActivity {
         mSelectedMonth = calendar.get(Calendar.MONTH)+1;
         mSelectedYear = calendar.get(Calendar.YEAR);
 
+        this.setTheme(android.R.style.Holo_Light_ButtonBar);
 
         Log.e(TAG, "Creo la alarma");
 
 
 
-        if (getIntent().getBooleanExtra("notificacion", false)){
-            Log.i(TAG,"entre if");
 
-
-
-        }else
-        {
-            Log.i(TAG,"entre else");
-
-            setAlarm(ALARM_HOUR,ALARM_MIN,ALARM_SEC);
-        }
 
 
         mListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
@@ -116,9 +112,6 @@ public class MainActivity extends ListActivity {
 
 
 
-        /*Toast.makeText(getBaseContext(),"Selected Date is\n\n"
-                        +mSelectedDay+" : "+(mSelectedMonth)+" : "+mSelectedYear ,
-                Toast.LENGTH_LONG).show();*/
 
 
         mCalendar.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
@@ -133,7 +126,9 @@ public class MainActivity extends ListActivity {
 
                 ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("Payments");
                 query.whereEqualTo("userId",ParseUser.getCurrentUser().getObjectId());
-                query.whereEqualTo("day",mSelectedDay);
+                query.whereEqualTo(ParseConstants.KEY_DAY,mSelectedDay);
+                query.whereEqualTo(ParseConstants.KEY_MONTH,mSelectedMonth);
+                query.whereEqualTo(ParseConstants.KEY_YEAR,mSelectedYear);
                 query.setLimit(1000);
                 query.findInBackground(new FindCallback<ParseObject>() {
 
@@ -146,7 +141,7 @@ public class MainActivity extends ListActivity {
                             String[] payments = new String[mPaymentNames.size()];
                             int i = 0;
                             for(ParseObject payment : mPaymentNames) {
-                                payments[i] = payment.getString("name");
+                                payments[i] = payment.getString("name") +"   $"+payment.getDouble("ammount");
                                 i++;
                             }
 
@@ -189,36 +184,72 @@ public class MainActivity extends ListActivity {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l)
             {
+                final String name = (String) mListView.getItemAtPosition(i);
+                StringTokenizer st = new StringTokenizer(name);
+                final String realName = st.nextToken();
+                AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this)
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .setTitle("¿Borrar?")
+                        .setMessage("¿De verdad queires borrar?")
+                        .setPositiveButton("Si", new DialogInterface.OnClickListener() {
 
-                Log.i(TAG,""+i);
-                ParseQuery<ParseObject> query = new ParseQuery<ParseObject>(ParseConstants.CLASS_PAYMENTS);
-                query.whereEqualTo(ParseConstants.KEY_USER_ID,ParseUser.getCurrentUser().getObjectId());
-                String name = (String) mListView.getItemAtPosition(i);
-                Log.i(TAG,"objecto:"+name);
-                Calendar calendar3 = Calendar.getInstance();
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i)
+                            {
 
-                int mActualDay = calendar3.get(Calendar.DAY_OF_MONTH);
-                int mActualMonth = calendar3.get(Calendar.MONTH)+1;
-                int mActualYear = calendar3.get(Calendar.YEAR);
 
-                query.whereEqualTo(ParseConstants.KEY_NAME, name);
-                query.whereEqualTo(ParseConstants.KEY_DAY,mSelectedDay);
-                query.whereEqualTo(ParseConstants.KEY_MONTH,mSelectedMonth);
-                query.whereEqualTo(ParseConstants.KEY_YEAR,mSelectedYear);
-                query.getFirstInBackground(new GetCallback<ParseObject>() {
+                                Log.i(TAG, "Confirmado");
 
-                    @Override
-                    public void done(ParseObject parseObject, ParseException e)
-                    {
-                        if (e == null){
-                            ParseObject.createWithoutData(ParseConstants.CLASS_PAYMENTS,
-                                    parseObject.getObjectId()).deleteEventually();
-                        }else {
-                            Log.e(TAG,e.getMessage());
-                        }
+                                Log.i(TAG,""+i);
+                                ParseQuery<ParseObject> query = new ParseQuery<ParseObject>(ParseConstants.CLASS_PAYMENTS);
+                                query.whereEqualTo(ParseConstants.KEY_USER_ID,ParseUser.getCurrentUser().getObjectId());
+                                Log.i(TAG,"objecto:"+realName);
+                                Calendar calendar3 = Calendar.getInstance();
 
-                    }
-                });
+                                int mActualDay = calendar3.get(Calendar.DAY_OF_MONTH);
+                                int mActualMonth = calendar3.get(Calendar.MONTH)+1;
+                                int mActualYear = calendar3.get(Calendar.YEAR);
+
+                                query.whereEqualTo(ParseConstants.KEY_NAME, realName);
+                                query.whereEqualTo(ParseConstants.KEY_DAY,mSelectedDay);
+                                query.whereEqualTo(ParseConstants.KEY_MONTH,mSelectedMonth);
+                                query.whereEqualTo(ParseConstants.KEY_YEAR,mSelectedYear);
+                                Log.i(TAG,"dia: " + mSelectedDay + "mes: " + mSelectedMonth + "year:" + mSelectedYear + "name:" + name);
+
+                                query.getFirstInBackground(new GetCallback<ParseObject>() {
+
+                                    @Override
+                                    public void done(ParseObject parseObject, ParseException e)
+                                    {
+                                        if (e == null){
+                                            ParseObject.createWithoutData(ParseConstants.CLASS_PAYMENTS,
+                                                    parseObject.getObjectId()).deleteEventually();
+                                        }else {
+                                            Log.e(TAG,e.getMessage());
+                                        }
+
+                                    }
+                                });
+
+                                //Actualizar Lista
+                                actualizarLista();
+
+
+                            }
+                        })
+                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
+
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i)
+                            {
+
+                                Log.i(TAG, "Negado");
+
+                            }
+                        });
+
+                alert.show();
+
                 return false;
             }
         });
@@ -237,9 +268,57 @@ public class MainActivity extends ListActivity {
 
         super.onResume();
 
+        SharedPreferences pref = PreferenceManager
+                .getDefaultSharedPreferences(this);
+
+        //Crea pending intent para las alarmas
+        mNotificationServiceIntent = new Intent(MainActivity.this,
+                NotificationService.class);
+        mNotificationServicePendingIntent = PendingIntent.getService(
+                MainActivity.this, 0, mNotificationServiceIntent, 0);
+
+        boolean alarmsActivated = pref.getBoolean("alarmas_activadas",true);
+
+        if (getIntent().getBooleanExtra("notificacion", false)){
+            Log.i(TAG,"entre if");
+
+
+        }else
+        {
+            Log.i(TAG,"entre else");
+
+
+            if(alarmsActivated){
+
+
+
+                Calendar calendar2 = Calendar.getInstance();
+                calendar2.setTimeInMillis(System.currentTimeMillis());
+                calendar2.set(Calendar.HOUR_OF_DAY, ALARM_HOUR);
+                calendar2.set(Calendar.MINUTE, ALARM_MIN);
+                calendar2.set(Calendar.SECOND, ALARM_SEC);
+                mAlarmManager.setRepeating(AlarmManager.RTC_WAKEUP,
+                        calendar2.getTimeInMillis(),
+                        AlarmManager.INTERVAL_DAY,//24*60*60*1000 dia
+                        mNotificationServicePendingIntent);
+            }
+
+        }
+
+        if (alarmsActivated == false){
+            mAlarmManager.cancel(mNotificationServicePendingIntent);
+        }
+
+
+
+
+
+
         ParseQuery<ParseObject> query = new ParseQuery<ParseObject>(ParseConstants.CLASS_PAYMENTS);
         query.whereEqualTo(ParseConstants.KEY_USER_ID,ParseUser.getCurrentUser().getObjectId());
         query.whereEqualTo(ParseConstants.KEY_DAY,mSelectedDay);
+        query.whereEqualTo(ParseConstants.KEY_MONTH,mSelectedMonth);
+        query.whereEqualTo(ParseConstants.KEY_YEAR,mSelectedYear);
         query.setLimit(1000);
         query.findInBackground(new FindCallback<ParseObject>() {
 
@@ -251,7 +330,7 @@ public class MainActivity extends ListActivity {
                     String[] payments = new String[mPaymentNames.size()];
                     int i = 0;
                     for(ParseObject payment : mPaymentNames) {
-                        payments[i] = payment.getString("name");
+                        payments[i] = payment.getString("name") +"   $"+payment.getDouble("ammount");
                         i++;
                     }
 
@@ -289,7 +368,7 @@ public class MainActivity extends ListActivity {
 
 
     //Adaptador de la lista de pagos
-    private class StableArrayAdapter extends ArrayAdapter<String> {
+    public class StableArrayAdapter extends ArrayAdapter<String> {
 
         HashMap<String, Integer> mIdMap = new HashMap<String, Integer>();
 
@@ -345,6 +424,51 @@ public class MainActivity extends ListActivity {
         mNotificationServicePendingIntent);
     }
 
+    public void actualizarLista(){
+        ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("Payments");
+        query.whereEqualTo("userId",ParseUser.getCurrentUser().getObjectId());
+        query.whereEqualTo(ParseConstants.KEY_DAY,mSelectedDay);
+        query.whereEqualTo(ParseConstants.KEY_MONTH,mSelectedMonth);
+        query.whereEqualTo(ParseConstants.KEY_YEAR,mSelectedYear);
+        query.setLimit(1000);
+        query.findInBackground(new FindCallback<ParseObject>() {
+
+            @Override
+            public void done(List<ParseObject> parseObjects, ParseException e)
+            {
+
+
+                setProgressBarIndeterminateVisibility(false);
+                if (e == null)
+                {
+                    mPaymentNames = parseObjects;
+                    String[] payments = new String[mPaymentNames.size()];
+                    int i = 0;
+                    for (ParseObject payment : mPaymentNames)
+                    {
+                        payments[i] = payment.getString("name") +"   $"+payment.getDouble("ammount");
+                        i++;
+                    }
+
+                    final ArrayList<String> list = new ArrayList<String>();
+                    for (int y = 0; y < payments.length; ++y)
+                    {
+                        list.add(payments[y]);
+                    }
+
+
+                    final ListView listview = (ListView) findViewById(R.id.listView);
+
+                    final StableArrayAdapter adapter = new StableArrayAdapter(MainActivity.this,
+                            android.R.layout.simple_list_item_checked, list);
+                    listview.setAdapter(adapter);
+
+
+                }
+            }
+        });
+    }
+
 
 
     @Override
@@ -383,6 +507,8 @@ public class MainActivity extends ListActivity {
             navigateToLogin();
         }
         if (id == R.id.action_settings) {
+            Intent i = new Intent(this, PrefActivity.class);
+            startActivity(i);
             return true;
         }
         if (id == R.id.action_add_payment){
@@ -431,7 +557,9 @@ public class MainActivity extends ListActivity {
 
         ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("Payments");
         query.whereEqualTo("userId",ParseUser.getCurrentUser().getObjectId());
-        query.whereEqualTo("day",mSelectedDay);
+        query.whereEqualTo(ParseConstants.KEY_DAY,mSelectedDay);
+        query.whereEqualTo(ParseConstants.KEY_MONTH,mSelectedMonth);
+        query.whereEqualTo(ParseConstants.KEY_YEAR,mSelectedYear);
         query.setLimit(1000);
         query.findInBackground(new FindCallback<ParseObject>() {
 
@@ -443,7 +571,7 @@ public class MainActivity extends ListActivity {
                     String[] payments = new String[mPaymentNames.size()];
                     int i = 0;
                     for(ParseObject payment : mPaymentNames) {
-                        payments[i] = payment.getString("name");
+                        payments[i] = payment.getString("name") +"   $"+payment.getDouble("ammount");
                         i++;
                     }
 

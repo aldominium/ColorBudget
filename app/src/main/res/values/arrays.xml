@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="tonos">
+        <item>Caja Registradora</item>
+        <item>Dong</item>
+    </array>
+
+    <array name="tonos_valores">
+        <item>cash</item>
+        <item>dong</item>
+    </array>
+
+    <array name="days">
+        <item>"1"</item>
+        <item>"5"</item>
+        <item>"15"</item>
+    </array>
+
+    <array name="days_valors">
+        <item>"1"</item>
+        <item>"5"</item>
+        <item>"15"</item>
+    </array>
+
+</resources>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <CheckBoxPreference android:title="Alarmas Activadas"
+                        android:key="alarmas_activadas"
+                        android:summary="Activa o desactiva las alarmas"
+                        android:defaultValue="true"
+        ></CheckBoxPreference>
+    <ListPreference android:key="tema"
+                    android:title="Tono de alerta"
+                    android:summary="Selecciona un tono para las alertas"
+                    android:dialogTitle="Seleccionar tono"
+                    android:entries="@array/tonos"
+                    android:entryValues="@array/tonos_valores"
+                    android:defaultValue="Verde">
+                    </ListPreference>
+
+
+    <ListPreference android:key="dias"
+                    android:title="Dias de anticipacion"
+                    android:summary="Numero de dias de anticipacion de las alarmas"
+                    android:dialogTitle="Seleccionar numero de días"
+                    android:entries="@array/days"
+                    android:entryValues="@array/days_valors">
+    </ListPreference>
+
+</PreferenceScreen>

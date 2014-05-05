@@ -26,5 +26,6 @@
     <string name="menu_new_payment_label">New payment</string>
     <string name="title_activity_add_payment">Add Payment</string>
     <string name="title_activity_settings">SettingsActivity</string>
+    <string name="title_activity_pref">Preferences</string>
 
 </resources>

@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:name="com.aldominium.colorbudget.app.ColorBudgetApplication"
@@ -39,7 +40,8 @@
         <activity
             android:name="com.aldominium.colorbudget.app.AddPaymentActivity"
             android:label="@string/title_activity_add_payment"
-            android:parentActivityName="com.aldominium.colorbudget.app.MainActivity" >
+            android:parentActivityName="com.aldominium.colorbudget.app.MainActivity"
+            android:screenOrientation="portrait">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="MainActivity" />
@@ -49,6 +51,25 @@
             android:name="com.aldominium.colorbudget.app.NotificationService"
             android:exported="false" >
         </service>
+
+        <receiver
+            android:name="com.aldominium.colorbudget.app.BootReceiver"
+            android:enabled="false"
+            android:exported="false" >
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <activity
+            android:name="com.aldominium.colorbudget.app.PrefActivity"
+            android:label="@string/title_activity_pref"
+            android:parentActivityName="com.aldominium.colorbudget.app.MainActivity"
+            android:screenOrientation="portrait">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="MainActivity" />
+        </activity>
     </application>
 
 </manifest>
